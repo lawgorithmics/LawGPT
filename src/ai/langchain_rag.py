@@ -12,6 +12,8 @@ import os
 
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
+os.environ["HF_TOKEN"] = os.getenv("HF_TOKEN")
+os.environ["HUGGINGFACE_API_KEY"] = os.getenv("HF_TOKEN")
 
 
 def create_uud_knowledge_base(pdf_path="documents/uud"):
@@ -19,24 +21,17 @@ def create_uud_knowledge_base(pdf_path="documents/uud"):
         collection="recipes",
         path="cache/chromadb",
         persistent_client=True,
-        embedder=SentenceTransformerEmbedder()
+        embedder=SentenceTransformerEmbedder(),
     )
-    # uud_kb = PDFUrlKnowledgeBase(
-    #     urls=["https://www.mkri.id/public/content/infoumum/regulation/pdf/UUD45%20ASLI.pdf"],
     uud_kb = PDFKnowledgeBase(
         path=pdf_path,
-        # vector_db=PgVector(
-        #     table_name="uud_kb",
-        #     db_url="postgresql+psycopg://ai:ai@localhost:5532/ai",
-        #     embedder=SentenceTransformerEmbedder()
-        # )
         vector_db=vector_db
     )
     return uud_kb
 
 def create_agent(debug_mode=True):
     uud_kb = create_uud_knowledge_base(pdf_path="documents/uud")
-    uud_kb.load(recreate=False)
+    # uud_kb.load(recreate=False)
     agent = Agent(
         name="law-agent",
         agent_id="law-agent",

@@ -16,7 +16,7 @@ os.environ["HF_TOKEN"] = os.getenv("HF_TOKEN")
 os.environ["HUGGINGFACE_API_KEY"] = os.getenv("HF_TOKEN")
 
 
-def create_uud_knowledge_base(pdf_path="documents/uud"):
+def create_uud_knowledge_base(pdf_path="documents"):
     vector_db = ChromaDb(
         collection="recipes",
         path="cache/chromadb",
@@ -30,7 +30,7 @@ def create_uud_knowledge_base(pdf_path="documents/uud"):
     return uud_kb
 
 def create_agent(debug_mode=True):
-    uud_kb = create_uud_knowledge_base(pdf_path="documents/uud")
+    uud_kb = create_uud_knowledge_base(pdf_path="documents")
     # uud_kb.load(recreate=False)
     agent = Agent(
         name="law-agent",

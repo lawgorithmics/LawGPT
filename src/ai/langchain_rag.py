@@ -1,5 +1,6 @@
 from agno.agent import Agent
 from agno.models.groq import Groq
+from agno.models.openai import OpenAIChat
 from agno.tools.googlesearch import GoogleSearchTools
 from agno.knowledge.pdf import PDFKnowledgeBase
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
@@ -13,6 +14,7 @@ import os
 
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 os.environ["HF_TOKEN"] = os.getenv("HF_TOKEN")
 os.environ["HUGGINGFACE_API_KEY"] = os.getenv("HF_TOKEN")
 
@@ -36,10 +38,18 @@ def create_agent(debug_mode=True):
     agent = Agent(
         name="law-agent",
         agent_id="law-agent",
+        # UNCOMMENT when using Groq
         model=Groq(
             id="llama-3.3-70b-versatile",
             temperature=0.2
         ),
+        # UNCOMMENT when using OpenAI
+        # model=OpenAIChat(
+        #     id="gpt-4o",
+        #     response_format="json",
+        #     temperature=0.2,
+        #     top_p=0.2,
+        # ),
         description="Anda adalah seorang ahli hukum. Anda mengetahui seluk beluk hukum Indonesia dan Undang Undang Dasar yang mendasarinya.",
         instructions=[
             "IMPORTANT: Jawablah dengan bahasa Indonesia yang baik dan benar sesuai dengan Kamus Besar Bahasa Indonesia (KBBI)",

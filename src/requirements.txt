@@ -11,5 +11,5 @@ pypdf==5.4.0
 SQLAlchemy==2.0.40
 sentence-transformers==4.1.0
 numpy<2
-chonkie
-openai
+openai==1.78.1
+chonkie==1.0.7

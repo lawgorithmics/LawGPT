@@ -8,12 +8,16 @@ from torch.nn.modules.module import Module as _TorchModule
 _orig_to = _TorchModule.to
 def _safe_to(self, *args, **kwargs):
     try:
+        # 1) normal behavior
         return _orig_to(self, *args, **kwargs)
     except NotImplementedError as e:
+        # 2a) fallback if it's the meta-tensor error
         if "Cannot copy out of meta tensor" in str(e):
-            # allocate real storage and move
-            return self.to_empty(*args, **kwargs)
+            return self.to_empty()
         raise
+    except TypeError:
+        # 2b) fallback if to_empty() signature mismatch
+        return self.to_empty()
 _TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
 
 

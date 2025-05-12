@@ -1,21 +1,3 @@
-# 1) Monkey-patch torch.Module.to to fall back to to_empty() on meta-tensor errors
-import torch
-from torch.nn.modules.module import Module as _TorchModule
-_orig_to = _TorchModule.to
-def _safe_to(self, *args, **kwargs):
-    try:
-        return _orig_to(self, *args, **kwargs)
-    except NotImplementedError as e:
-        if "Cannot copy out of meta tensor" in str(e):
-            # allocate real storage and move
-            return self.to_empty(*args, **kwargs)
-        raise
-_TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
-
-# 2) Disable Streamlit’s file watcher so it won’t introspect torch.classes
-import os
-os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"  
-
 from agno.agent import Agent
 from agno.models.groq import Groq
 from agno.models.openai import OpenAIChat
@@ -34,6 +16,7 @@ from agno.document.chunking.semantic import SemanticChunking
 
 from dotenv import load_dotenv
 
+import os
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")

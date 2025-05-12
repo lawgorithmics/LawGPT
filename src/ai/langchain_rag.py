@@ -33,7 +33,6 @@ from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 from agno.document.chunking.semantic import SemanticChunking
 
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")

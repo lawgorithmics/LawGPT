@@ -5,7 +5,12 @@ from agno.tools.googlesearch import GoogleSearchTools
 from agno.knowledge.pdf import PDFKnowledgeBase
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
 from agno.vectordb.pgvector import PgVector
+
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from agno.vectordb.chroma import ChromaDb
+
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 from agno.document.chunking.semantic import SemanticChunking
 

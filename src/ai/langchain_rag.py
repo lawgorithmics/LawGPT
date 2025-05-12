@@ -13,11 +13,17 @@ def _safe_to(self, *args, **kwargs):
     except NotImplementedError as e:
         # 2a) fallback if it's the meta-tensor error
         if "Cannot copy out of meta tensor" in str(e):
-            return self.to_empty()
+            # Extract the device that was requested
+            # args[0] is usually the device (e.g. "cpu" or "cuda")
+            device = args[0] if len(args) >= 1 else kwargs.get("device")
+            return self.to_empty(device=device)
         raise
     except TypeError:
         # 2b) fallback if to_empty() signature mismatch
-        return self.to_empty()
+        # Extract the device that was requested
+        # args[0] is usually the device (e.g. "cpu" or "cuda")
+        device = args[0] if len(args) >= 1 else kwargs.get("device")
+        return self.to_empty(device=device)
 _TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
 
 

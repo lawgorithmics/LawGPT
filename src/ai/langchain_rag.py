@@ -1,4 +1,8 @@
-# 1) Monkey-patch torch.Module.to to fall back to to_empty() on meta-tensor errors
+# 1) Disable Streamlit’s file watcher so it won’t introspect torch.classes
+import os
+os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"  
+
+# 2) Monkey-patch torch.Module.to to fall back to to_empty() on meta-tensor errors
 import torch
 from torch.nn.modules.module import Module as _TorchModule
 _orig_to = _TorchModule.to
@@ -12,9 +16,6 @@ def _safe_to(self, *args, **kwargs):
         raise
 _TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
 
-# 2) Disable Streamlit’s file watcher so it won’t introspect torch.classes
-import os
-os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"  
 
 from agno.agent import Agent
 from agno.models.groq import Groq

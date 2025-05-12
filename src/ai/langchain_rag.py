@@ -1,6 +1,6 @@
 from agno.agent import Agent
 from agno.models.groq import Groq
-from agno.models.openai import OpenAIChat
+# from agno.models.openai import OpenAIChat
 from agno.tools.googlesearch import GoogleSearchTools
 from agno.knowledge.pdf import PDFKnowledgeBase
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase

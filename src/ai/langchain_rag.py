@@ -123,6 +123,7 @@ def create_agent(debug_mode=True):
             "   2. Cara penanganannya bagaimana.",
             "   3. Hukuman apakah yang pengguna akan dapatkan.",
             "Apabila ada nominal uang yang tersangkut atau terlibat pada kasus ini, tolong berikan dalam mata uang Rupiah Indonesia (IDR)."
+            "Kalau Anda tidak tahu jawabannya, jangan berhalusinasi—jawab saja “Saya tidak tahu.”"
             # "Jawablah pertanyaan pengguna dengan baik dan jujur."
         ],
         knowledge=uud_kb,

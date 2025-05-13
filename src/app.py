@@ -61,5 +61,5 @@ if prompt:
         assistant_message.markdown(response)
         st.session_state.messages.append({
             "role": "assistant",
-            "content": [("markdown", f"**Source:** {source}\n\n{result.content}")]
+            "content": [("markdown", f"**Source:** {source}\n\n{response}")]
         })

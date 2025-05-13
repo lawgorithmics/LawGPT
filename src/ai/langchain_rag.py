@@ -2,29 +2,29 @@
 import os
 os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"  
 
-# 2) Monkey-patch torch.Module.to to fall back to to_empty() on meta-tensor errors
-import torch
-from torch.nn.modules.module import Module as _TorchModule
-_orig_to = _TorchModule.to
-def _safe_to(self, *args, **kwargs):
-    try:
-        # 1) normal behavior
-        return _orig_to(self, *args, **kwargs)
-    except NotImplementedError as e:
-        # 2a) fallback if it's the meta-tensor error
-        if "Cannot copy out of meta tensor" in str(e):
-            # Extract the device that was requested
-            # args[0] is usually the device (e.g. "cpu" or "cuda")
-            device = args[0] if len(args) >= 1 else kwargs.get("device")
-            return self.to_empty(device=device)
-        raise
-    except TypeError:
-        # 2b) fallback if to_empty() signature mismatch
-        # Extract the device that was requested
-        # args[0] is usually the device (e.g. "cpu" or "cuda")
-        device = args[0] if len(args) >= 1 else kwargs.get("device")
-        return self.to_empty(device=device)
-_TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
+# # 2) Monkey-patch torch.Module.to to fall back to to_empty() on meta-tensor errors
+# import torch
+# from torch.nn.modules.module import Module as _TorchModule
+# _orig_to = _TorchModule.to
+# def _safe_to(self, *args, **kwargs):
+#     try:
+#         # 1) normal behavior
+#         return _orig_to(self, *args, **kwargs)
+#     except NotImplementedError as e:
+#         # 2a) fallback if it's the meta-tensor error
+#         if "Cannot copy out of meta tensor" in str(e):
+#             # Extract the device that was requested
+#             # args[0] is usually the device (e.g. "cpu" or "cuda")
+#             device = args[0] if len(args) >= 1 else kwargs.get("device")
+#             return self.to_empty(device=device)
+#         raise
+#     except TypeError:
+#         # 2b) fallback if to_empty() signature mismatch
+#         # Extract the device that was requested
+#         # args[0] is usually the device (e.g. "cpu" or "cuda")
+#         device = args[0] if len(args) >= 1 else kwargs.get("device")
+#         return self.to_empty(device=device)
+# _TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
 
 
 from agno.agent import Agent

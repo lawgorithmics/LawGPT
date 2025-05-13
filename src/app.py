@@ -50,8 +50,16 @@ if prompt:
 
     response = agent.run(prompt, stream=False).content
     if response:
+        tool_calls = getattr(agent, "tool_usage", [])
+        if any(call.get("tool_name") == "GoogleSearchTools" for call in tool_calls):
+            source = "Google Search"
+        elif any(call.get("tool_name") in ("ChromaDb", "PDFKnowledgeBase") for call in tool_calls):
+            source = "Knowledge Base"
+        else:
+            source = "Model"
+        
         assistant_message.markdown(response)
         st.session_state.messages.append({
             "role": "assistant",
-            "content": [("markdown", response)]
+            "content": [("markdown", f"**Source:** {source}\n\n{result.content}")]
         })

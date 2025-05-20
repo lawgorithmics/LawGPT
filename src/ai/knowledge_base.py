@@ -130,7 +130,7 @@ def create_agent(system_prompt_path="data/system_prompt.txt", debug_mode=True):
             "Tugas Anda adalah menganalisis kasus hukum, mengidentifikasi pelanggaran, menjelaskan penanganannya, "
             "serta menyebutkan sanksi yang mungkin dikenakan sesuai dengan hukum dan peraturan yang berlaku di Indonesia."
         ),
-        instructions=system_prompt,
+        instructions=system_prompt.strip(),
         knowledge=law_kb,
         search_knowledge=True,
         tools=[

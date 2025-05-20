@@ -125,8 +125,11 @@ def create_agent(system_prompt_path="data/system_prompt.txt", debug_mode=True):
         name="law-agent",
         agent_id="law-agent",
         model=model_provider,
+        description=(
+            "Anda adalah seorang ahli hukum Indonesia. "
+            "Tugas Anda adalah menganalisis kasus hukum, mengidentifikasi pelanggaran, menjelaskan penanganannya, "
+            "serta menyebutkan sanksi yang mungkin dikenakan sesuai dengan hukum dan peraturan yang berlaku di Indonesia."
         ),
-        description="Anda adalah seorang ahli hukum. Anda mengetahui seluk beluk hukum Indonesia dan Undang Undang Dasar yang mendasarinya.",
         instructions=system_prompt,
         knowledge=law_kb,
         search_knowledge=True,

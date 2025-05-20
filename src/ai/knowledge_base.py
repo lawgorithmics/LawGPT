@@ -35,9 +35,9 @@ from agno.knowledge.pdf import PDFKnowledgeBase
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
 from agno.vectordb.pgvector import PgVector
 
-# __import__('pysqlite3')
+__import__('pysqlite3')
 import sys
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from agno.vectordb.chroma import ChromaDb
 
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder

@@ -1,3 +1,32 @@
+# 1) Disable Streamlit’s file watcher so it won’t introspect torch.classes
+import os
+os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"  
+
+# 2) Monkey-patch torch.Module.to to fall back to to_empty() on meta-tensor errors
+import torch
+from torch.nn.modules.module import Module as _TorchModule
+_orig_to = _TorchModule.to
+def _safe_to(self, *args, **kwargs):
+    try:
+        # 1) normal behavior
+        return _orig_to(self, *args, **kwargs)
+    except NotImplementedError as e:
+        # 2a) fallback if it's the meta-tensor error
+        if "Cannot copy out of meta tensor" in str(e):
+            # Extract the device that was requested
+            # args[0] is usually the device (e.g. "cpu" or "cuda")
+            device = args[0] if len(args) >= 1 else kwargs.get("device")
+            return self.to_empty(device=device)
+        raise
+    except TypeError:
+        # 2b) fallback if to_empty() signature mismatch
+        # Extract the device that was requested
+        # args[0] is usually the device (e.g. "cpu" or "cuda")
+        device = args[0] if len(args) >= 1 else kwargs.get("device")
+        return self.to_empty(device=device)
+_TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
+
+
 from agno.agent import Agent
 from agno.models.groq import Groq
 from agno.models.openai import OpenAIChat
@@ -5,12 +34,16 @@ from agno.tools.googlesearch import GoogleSearchTools
 from agno.knowledge.pdf import PDFKnowledgeBase
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
 from agno.vectordb.pgvector import PgVector
+
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from agno.vectordb.chroma import ChromaDb
+
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 from agno.document.chunking.semantic import SemanticChunking
 
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
@@ -34,7 +67,38 @@ def create_uud_knowledge_base(pdf_path="documents"):
 
 def create_agent(debug_mode=True):
     uud_kb = create_uud_knowledge_base(pdf_path="documents")
-    uud_kb.load(recreate=False)
+    # uud_kb.load(recreate=False)
+    # Instead of uud_kb.load(), do a manual insert with per-doc error handling
+    try:
+        # Get only the docs that aren’t already in the collection
+        docs_to_load = uud_kb.filter_existing_documents()
+        
+        safe_docs = []
+        safe_filters = []
+        for doc in docs_to_load:
+            content = doc.content.strip()
+            if not content:
+                # skip empty chunks
+                continue
+
+            try:
+                # attempt embedding
+                doc.embed(embedder=uud_kb.embedder)
+                safe_docs.append(doc)
+                safe_filters.append(doc.meta_data or {})
+            except Exception as e:
+                # skip any chunk that fails to embed
+                continue
+        
+        if safe_docs:
+            uud_kb.vector_db.insert(
+                documents=safe_docs,
+                filters=safe_filters
+            )
+    except Exception:
+        # collection already exists — ignore
+        pass
+    
     agent = Agent(
         name="law-agent",
         agent_id="law-agent",
@@ -59,6 +123,7 @@ def create_agent(debug_mode=True):
             "   2. Cara penanganannya bagaimana.",
             "   3. Hukuman apakah yang pengguna akan dapatkan.",
             "Apabila ada nominal uang yang tersangkut atau terlibat pada kasus ini, tolong berikan dalam mata uang Rupiah Indonesia (IDR)."
+            "Kalau Anda tidak tahu jawabannya, jangan berhalusinasi—jawab saja “Saya tidak tahu.”"
             # "Jawablah pertanyaan pengguna dengan baik dan jujur."
         ],
         knowledge=uud_kb,

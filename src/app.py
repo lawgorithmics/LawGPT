@@ -50,6 +50,17 @@ if prompt:
 
     response = agent.run(prompt, stream=False).content
     if response:
+        #tool_calls = getattr(agent, "tool_usage", [])
+        #tool_names = {call.get("tool_name", "Unknown") for call in tool_calls}
+        #source = ", ".join(sorted(tool_names)) if tool_names else "Model"
+        #if any(call.get("tool_name") == "GoogleSearchTools" for call in tool_calls):
+        #    source = "Google Search"
+        #elif any(call.get("tool_name") in ("ChromaDb", "PDFKnowledgeBase") for call in tool_calls):
+        #    source = "Knowledge Base"
+        #else:
+        #    source = "Model"
+        
+        assistant_message.markdown(response)
         tool_calls = getattr(agent, "tool_usage", [])
         tool_names = {call.get("tool_name", "Unknown") for call in tool_calls}
         source = ", ".join(sorted(tool_names)) if tool_names else "Model"

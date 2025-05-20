@@ -1,5 +1,5 @@
 import streamlit as st
-from ai.langchain_rag import create_agent
+from ai.knowledge_base import create_agent
 
 
 st.title("Law GPT Indonesia")

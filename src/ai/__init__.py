@@ -1,1 +1,1 @@
-from .langchain_rag import *
+from .knowledge_base import *

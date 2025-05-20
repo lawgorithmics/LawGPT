@@ -26,7 +26,6 @@ def _safe_to(self, *args, **kwargs):
         return self.to_empty(device=device)
 _TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
 
-
 from agno.agent import Agent
 from agno.models.groq import Groq
 from agno.models.openai import OpenAIChat
@@ -103,23 +102,35 @@ def create_agent(system_prompt_path="data/system_prompt.txt", debug_mode=True):
     with open(system_prompt_path, 'r') as system_prompt_f:
         system_prompt = system_prompt_f.readlines()
     
+    # Define which provider to use: 'groq' or 'openai'
+    model_provider = "openai"  # or "groq"
+
+    # Select model based on provider
+    if model_provider == "groq":
+        model = Groq(
+            id="llama-3.3-70b-versatile",
+            temperature=0.2 
+        )
+    elif model_provider == "openai":
+        model = OpenAIChat(
+            id="gpt-4o",
+            response_format="json",
+            temperature=0.2,
+            top_p=0.2
+        )
+    else:
+        raise ValueError(f"Unsupported model provider: {model_provider}")
+
     agent = Agent(
         name="law-agent",
         agent_id="law-agent",
-        # UNCOMMENT when using Groq
-        model=Groq(
-            id="llama-3.3-70b-versatile",
-            temperature=0.2
+        model=model_provider,
+        description=(
+            "Anda adalah seorang ahli hukum Indonesia. "
+            "Tugas Anda adalah menganalisis kasus hukum, mengidentifikasi pelanggaran, menjelaskan penanganannya, "
+            "serta menyebutkan sanksi yang mungkin dikenakan sesuai dengan hukum dan peraturan yang berlaku di Indonesia."
         ),
-        # UNCOMMENT when using OpenAI
-        # model=OpenAIChat(
-        #     id="gpt-4o",
-        #     response_format="json",
-        #     temperature=0.2,
-        #     top_p=0.2,
-        # ),
-        description="Anda adalah seorang ahli hukum. Anda mengetahui seluk beluk hukum Indonesia dan Undang Undang Dasar yang mendasarinya.",
-        instructions=system_prompt,
+        instructions=system_prompt.strip(),
         knowledge=law_kb,
         search_knowledge=True,
         tools=[

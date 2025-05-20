@@ -61,7 +61,12 @@ if prompt:
         #    source = "Model"
         
         assistant_message.markdown(response)
+        tool_calls = getattr(agent, "tool_usage", [])
+        tool_names = {call.get("tool_name", "Unknown") for call in tool_calls}
+        source = ", ".join(sorted(tool_names)) if tool_names else "Model"
+
+        assistant_message.markdown(f"**Source:** {source}\n\n{response}")
         st.session_state.messages.append({
             "role": "assistant",
-            "content": [("markdown", response)]
+            "content": [("markdown", f"**Source:** {source}\n\n{response}")]
         })

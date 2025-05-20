@@ -103,7 +103,7 @@ def create_agent(system_prompt_path="data/system_prompt.txt", debug_mode=True):
         system_prompt = system_prompt_f.readlines()
     
     # Define which provider to use: 'groq' or 'openai'
-    model_provider = "openai"  # or "groq"
+    model_provider = "groq"
 
     # Select model based on provider
     if model_provider == "groq":

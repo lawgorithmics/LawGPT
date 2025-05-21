@@ -3,6 +3,7 @@ import os
 os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"  
 
 # 2) Monkey-patch torch.Module.to to fall back to to_empty() on meta-tensor errors
+from textwrap import dedent
 import torch
 from torch.nn.modules.module import Module as _TorchModule
 _orig_to = _TorchModule.to
@@ -25,7 +26,6 @@ def _safe_to(self, *args, **kwargs):
         device = args[0] if len(args) >= 1 else kwargs.get("device")
         return self.to_empty(device=device)
 _TorchModule.to = _safe_to  # now all Module.to() calls will handle meta tensors :contentReference[oaicite:0]{index=0}
-
 
 from agno.agent import Agent
 from agno.models.groq import Groq
@@ -67,59 +67,71 @@ def create_uud_knowledge_base(pdf_path="documents"):
 
 def create_agent(system_prompt_path="data/system_prompt.txt", debug_mode=True):
     law_kb = create_uud_knowledge_base(pdf_path="documents")
-    # law_kb.load(recreate=False)
+    law_kb.load(recreate=False)
     # Instead of law_kb.load(), do a manual insert with per-doc error handling
-    try:
-        # Get only the docs that aren’t already in the collection
-        docs_to_load = law_kb.filter_existing_documents()
+    # try:
+    #     # Get only the docs that aren’t already in the collection
+    #     docs_to_load = law_kb.filter_existing_documents()
         
-        safe_docs = []
-        safe_filters = []
-        for doc in docs_to_load:
-            content = doc.content.strip()
-            if not content:
-                # skip empty chunks
-                continue
+    #     safe_docs = []
+    #     safe_filters = []
+    #     for doc in docs_to_load:
+    #         content = doc.content.strip()
+    #         if not content:
+    #             # skip empty chunks
+    #             continue
 
-            try:
-                # attempt embedding
-                doc.embed(embedder=law_kb.embedder)
-                safe_docs.append(doc)
-                safe_filters.append(doc.meta_data or {})
-            except Exception as e:
-                # skip any chunk that fails to embed
-                continue
+    #         try:
+    #             # attempt embedding
+    #             doc.embed(embedder=law_kb.embedder)
+    #             safe_docs.append(doc)
+    #             safe_filters.append(doc.meta_data or {})
+    #         except Exception as e:
+    #             # skip any chunk that fails to embed
+    #             continue
         
-        if safe_docs:
-            law_kb.vector_db.insert(
-                documents=safe_docs,
-                filters=safe_filters
-            )
-    except Exception:
-        # collection already exists — ignore
-        pass
+    #     if safe_docs:
+    #         law_kb.vector_db.insert(
+    #             documents=safe_docs,
+    #             filters=safe_filters
+    #         )
+    # except Exception:
+    #     # collection already exists — ignore
+    #     pass
 
     # get system prompt
     with open(system_prompt_path, 'r') as system_prompt_f:
-        system_prompt = system_prompt_f.readlines()
+        system_prompt = system_prompt_f.read()
     
+    # Define which provider to use: 'groq' or 'openai'
+    model_provider = "groq"
+
+    # Select model based on provider
+    if model_provider == "groq":
+        model = Groq(
+            id="llama-3.3-70b-versatile",
+            temperature=0.2 
+        )
+    elif model_provider == "openai":
+        model = OpenAIChat(
+            id="gpt-4o",
+            response_format="json",
+            temperature=0.2,
+            top_p=0.2
+        )
+    else:
+        raise ValueError(f"Unsupported model provider: {model_provider}")
+
     agent = Agent(
         name="law-agent",
         agent_id="law-agent",
-        # UNCOMMENT when using Groq
-        model=Groq(
-            id="llama-3.3-70b-versatile",
-            temperature=0.2
+        model=model,
+        description=(
+            "Anda adalah seorang ahli hukum Indonesia. "
+            "Tugas Anda adalah menganalisis kasus hukum, mengidentifikasi pelanggaran, menjelaskan penanganannya, "
+            "serta menyebutkan sanksi yang mungkin dikenakan sesuai dengan hukum dan peraturan yang berlaku di Indonesia."
         ),
-        # UNCOMMENT when using OpenAI
-        # model=OpenAIChat(
-        #     id="gpt-4o",
-        #     response_format="json",
-        #     temperature=0.2,
-        #     top_p=0.2,
-        # ),
-        description="Anda adalah seorang ahli hukum. Anda mengetahui seluk beluk hukum Indonesia dan Undang Undang Dasar yang mendasarinya.",
-        instructions=system_prompt,
+        instructions=[dedent(system_prompt)],
         knowledge=law_kb,
         search_knowledge=True,
         tools=[
